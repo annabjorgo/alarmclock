@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
 #define LEN 256
 
 char menu_select;
@@ -28,7 +29,7 @@ void menuFunc()
 
         int time;
         printf("Schedule alarm at which date and time? ");
-        scanf("%s", &string);
+        scanf("%s", string);
         // parse something
         printf("\nScheduling alarm in %s seconds\n", string);
     }
@@ -49,6 +50,11 @@ void menuFunc()
 
 int main()
 {
+    time_t now = time(NULL);
+    struct tm *time = localtime(&now);
+    char s[100];
+    strftime(s, 100,"%Y-%m-%d %X\n", time);
+    printf("Welcome to the alarm clock! It is currently %s\n", s);
     menuFunc();
     return 0;
 }
