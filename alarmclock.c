@@ -17,13 +17,16 @@ struct alarm alarmArray[20];
 
 void menuFunc()
 {
-    printf("awesome alarmclock!!\n");
+    time_t now = time(NULL);
+    struct tm *time = localtime(&now);
+    char s[100];
+    strftime(s, 100,"%Y-%m-%d %X", time);
+    printf("Welcome to the alarm clock! It is currently %s", s);
     printf("Please enter 's' (schedule), 'l' (list), 'c' (cancel) or 'x' (exit) \n");
     scanf("%[^\n]%*c", &menu_select);
     // printf("%c\n", menu_select);
 
     char string[LEN] = {0};
-
     if (menu_select == 's')
     {
 
@@ -50,11 +53,6 @@ void menuFunc()
 
 int main()
 {
-    time_t now = time(NULL);
-    struct tm *time = localtime(&now);
-    char s[100];
-    strftime(s, 100,"%Y-%m-%d %X\n", time);
-    printf("Welcome to the alarm clock! It is currently %s\n", s);
     menuFunc();
     return 0;
 }
