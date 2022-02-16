@@ -1,3 +1,4 @@
+#define _XOPEN_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -18,7 +19,7 @@ struct alarm alarmArray[20];
 void menuFunc()
 {
     time_t now = time(NULL);
-    struct tm *time = localtime(&now);
+    struct tm *time = localtime(&now); //to get a nice string of time
     char s[100];
     strftime(s, 100,"%Y-%m-%d %X", time);
     printf("Welcome to the alarm clock! It is currently %s", s);
@@ -26,15 +27,24 @@ void menuFunc()
     scanf("%[^\n]%*c", &menu_select);
     // printf("%c\n", menu_select);
 
-    char string[LEN] = {0};
+    char alarmInput[LEN] = {0};
     if (menu_select == 's')
     {
-
-        int time;
+        char buf[255];
         printf("Schedule alarm at which date and time? ");
-        scanf("%s", string);
-        // parse something
-        printf("\nScheduling alarm in %s seconds\n", string);
+        scanf("%[^\n]%*c", alarmInput);
+        struct tm result;
+        strptime(alarmInput, "%Y-%m-%d %H:%M:%S", &result);
+        strftime(buf, sizeof(buf), "%d %b %Y %H:%M", &result);
+        puts(buf);
+        
+
+        //strptime(string, "%Y-%m-%d %X", &result);
+        //strftime(buf, sizeof(buf), "%Y-%m-%d %X", &result);
+        //printf("%s", buf);
+        
+        
+        
     }
     if (menu_select == 'l')
     {
