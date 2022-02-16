@@ -38,6 +38,7 @@ unsigned int fork_alarm(time_t timestamp)
         time_t now = time(NULL);
 
         int diff = (int)difftime(timestamp, now);
+        printf("Scheduling alarm in %d seconds\n", diff);
 
         if (diff < 0)
         {
@@ -46,7 +47,7 @@ unsigned int fork_alarm(time_t timestamp)
         }
         else
         {
-            printf("%d", diff);
+            
             sleep(diff);
             alarm_ring();
             exit(0);
@@ -69,6 +70,7 @@ void menuFunc()
     {
         char buf[255];
         printf("Schedule alarm at which date and time? ");
+        //legge til hvis bruker skriver inn feil input
         scanf("%[^\n]%*c", alarmInput);
         struct tm result;
         strptime(alarmInput, "%Y-%m-%d %H:%M:%S", &result);
@@ -76,7 +78,7 @@ void menuFunc()
         
         // convert from tm struct to time_t variable
         time_t resultTime = mktime(&result);
-        //print ut tid 
+        
 
 
         // call function that forks and creates a child process for the alarm
