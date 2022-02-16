@@ -9,6 +9,7 @@
 
 char menu_select;
 unsigned int alarm_count;
+int number = 0;
 
 typedef struct alarm_t
 {
@@ -20,8 +21,18 @@ struct alarm_t alarmArray[20];
 
 void alarm_ring()
 {
-    printf("Ring ring bitch");
-    // execlp("mpg123", "mpg123", "-q", "./alarm.mp3", 0);
+    printf("\nRing ring bitch");
+    // execlp("mpg123", "mpg123", "-q", "./alarm.mp3", NULL);
+}
+
+void welcome()
+{
+    time_t now = time(NULL);
+    struct tm *time = localtime(&now);
+    char s[100];
+    strftime(s, 100, "%Y-%m-%d %X", time);
+    printf("Welcome to the alarm clock! It is currently %s", s);
+    printf("Please enter 's' (schedule), 'l' (list), 'c' (cancel) or 'x' (exit) \n");
 }
 
 unsigned int fork_alarm(time_t timestamp)
@@ -47,7 +58,7 @@ unsigned int fork_alarm(time_t timestamp)
         }
         else
         {
-            
+            // printf("%d", diff);
             sleep(diff);
             alarm_ring();
             exit(0);
@@ -57,14 +68,7 @@ unsigned int fork_alarm(time_t timestamp)
 
 void menuFunc()
 {
-    time_t now = time(NULL);
-    struct tm *time = localtime(&now);
-    char s[100];
-    strftime(s, 100, "%Y-%m-%d %X", time);
-    printf("Welcome to the alarm clock! It is currently %s", s);
-    printf("Please enter 's' (schedule), 'l' (list), 'c' (cancel) or 'x' (exit) \n");
     scanf("%[^\n]%*c", &menu_select);
-
     char alarmInput[LEN] = {0};
     if (menu_select == 's')
     {
@@ -74,12 +78,10 @@ void menuFunc()
         scanf("%[^\n]%*c", alarmInput);
         struct tm result;
         strptime(alarmInput, "%Y-%m-%d %H:%M:%S", &result);
-        
-        
+
         // convert from tm struct to time_t variable
         time_t resultTime = mktime(&result);
-        
-
+        // print ut tid
 
         // call function that forks and creates a child process for the alarm
         unsigned int pid = fork_alarm(resultTime);
@@ -96,6 +98,7 @@ void menuFunc()
 
     if (menu_select == 'l')
     {
+        printf("l was selected");
     }
     if (menu_select == 'c')
     {
@@ -106,6 +109,7 @@ void menuFunc()
         // have to cancel all the alarms in the list
         printf("exit\n");
         void exit(int status);
+        number = 1;
     }
     // printf("%c\n", menu_select);
 }
@@ -113,6 +117,10 @@ void menuFunc()
 int main()
 {
     alarm_t alarm_object;
-    menuFunc();
+    welcome();
+    while (number == 0)
+    {
+        menuFunc();
+    }
     return 0;
 }
