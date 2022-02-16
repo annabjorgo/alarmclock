@@ -1,4 +1,3 @@
-
 #define _XOPEN_SOURCE
 #include <stdio.h>
 #include <string.h>
@@ -47,6 +46,7 @@ unsigned int fork_alarm(time_t timestamp)
         }
         else
         {
+            printf("%d", diff);
             sleep(diff);
             alarm_ring();
             exit(0);
@@ -57,13 +57,12 @@ unsigned int fork_alarm(time_t timestamp)
 void menuFunc()
 {
     time_t now = time(NULL);
-    struct tm *time = localtime(&now); // to get a nice string of time
+    struct tm *time = localtime(&now);
     char s[100];
     strftime(s, 100, "%Y-%m-%d %X", time);
     printf("Welcome to the alarm clock! It is currently %s", s);
     printf("Please enter 's' (schedule), 'l' (list), 'c' (cancel) or 'x' (exit) \n");
     scanf("%[^\n]%*c", &menu_select);
-    // printf("%c\n", menu_select);
 
     char alarmInput[LEN] = {0};
     if (menu_select == 's')
@@ -73,14 +72,14 @@ void menuFunc()
         scanf("%[^\n]%*c", alarmInput);
         struct tm result;
         strptime(alarmInput, "%Y-%m-%d %H:%M:%S", &result);
-        // do we need the date and time as string in buf?
-        strftime(buf, sizeof(buf), "%d %b %Y %H:%M", &result);
-        puts(buf);
-
+        
+        
         // convert from tm struct to time_t variable
         time_t resultTime = mktime(&result);
+        //print ut tid 
 
-        // call function that forks and creates a child process forthe alarm
+
+        // call function that forks and creates a child process for the alarm
         unsigned int pid = fork_alarm(resultTime);
 
         alarm_t new_alarm;
@@ -91,11 +90,8 @@ void menuFunc()
         unsigned int alarm_id = alarm_count;
         alarmArray[alarm_id] = new_alarm;
         alarm_count += 1;
-
-        // strptime(string, "%Y-%m-%d %X", &result);
-        // strftime(buf, sizeof(buf), "%Y-%m-%d %X", &result);
-        // printf("%s", buf);
     }
+
     if (menu_select == 'l')
     {
     }
