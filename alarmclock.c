@@ -25,19 +25,10 @@ void alarm_ring()
     // execlp("mpg123", "mpg123", "-q", "./alarm.mp3", NULL);
 }
 
-void welcome()
-{
-    time_t now = time(NULL);
-    struct tm *time = localtime(&now);
-    char s[100];
-    strftime(s, 100, "%Y-%m-%d %X", time);
-    printf("Welcome to the alarm clock! It is currently %s", s);
-    printf("Please enter 's' (schedule), 'l' (list), 'c' (cancel) or 'x' (exit) \n");
-}
 
 unsigned int fork_alarm(time_t timestamp)
 {
-    unsigned int pid = fork();
+    unsigned int pid = fork(); //should be a pid_t type 
 
     if (pid != 0)
     {
@@ -47,6 +38,7 @@ unsigned int fork_alarm(time_t timestamp)
     else
     {
         time_t now = time(NULL);
+
 
         int diff = (int)difftime(timestamp, now);
         printf("Scheduling alarm in %d seconds\n", diff);
@@ -66,8 +58,19 @@ unsigned int fork_alarm(time_t timestamp)
     }
 }
 
+void welcome() {
+    time_t now = time(NULL);
+    struct tm *time = localtime(&now);
+    char s[100];
+    strftime(s, 100, "%Y-%m-%d %X", time);
+    printf("Welcome to the alarm clock! It is currently %s", s);
+    printf("Please enter 's' (schedule), 'l' (list), 'c' (cancel) or 'x' (exit) \n");
+
+}
+
 void menuFunc()
 {
+    welcome();
     scanf("%[^\n]%*c", &menu_select);
     char alarmInput[LEN] = {0};
     if (menu_select == 's')
@@ -114,10 +117,10 @@ void menuFunc()
     // printf("%c\n", menu_select);
 }
 
+
 int main()
 {
     alarm_t alarm_object;
-    welcome();
     while (number == 0)
     {
         menuFunc();
