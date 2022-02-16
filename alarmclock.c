@@ -1,20 +1,59 @@
+
 #define _XOPEN_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
+#include <unistd.h>
 #define LEN 256
 
 char menu_select;
+unsigned int alarm_count;
 
-struct alarm
+typedef struct alarm
 {
     time_t time;
-    int PID;
-};
+    unsigned int pid;
+} alarm;
 
 struct alarm alarmArray[20];
+
+void alarm_ring()
+{
+    printf("Ring ring bitch");
+    execlp("mpg123", "mpg123", "-q", "./alarm.mp3",0);
+}
+
+unsigned int fork_alarm(time_t timestamp)
+{
+    unsigned int pid = fork();
+
+    if(pid!=0)
+    {
+        return pid;
+    }
+
+    else
+    {
+        time_t now = time(NULL);
+
+        int diff = (int)difftime(timestamp, now);
+
+        if (diff<0)
+        {
+            //error handling
+            exit(1);
+        }
+        else
+        {
+            sleep(diff);
+            alarm_ring();
+            exit(0);
+
+        }
+    }
+}
 
 void menuFunc()
 {
@@ -35,9 +74,25 @@ void menuFunc()
         scanf("%[^\n]%*c", alarmInput);
         struct tm result;
         strptime(alarmInput, "%Y-%m-%d %H:%M:%S", &result);
+        //do we need the date and time as string in buf?
         strftime(buf, sizeof(buf), "%d %b %Y %H:%M", &result);
         puts(buf);
+
+        //convert from tm struct tom time_t variable 
+        time_t resultTime = mktime(&result);
         
+        //call function that forks and creates a child process forthe alarm
+        unsigned int pid = fork_alarm(resultTime);
+
+        alarm new_alarm;
+        new_alarm.time = resultTime;
+        new_alarm.pid = pid;
+
+        //put newly constructed alarm in array 
+        unsigned int alarm_id = alarm_count;
+        alarmArray[alarm_id] = new_alarm;
+        alarm_count += 1; 
+
 
         //strptime(string, "%Y-%m-%d %X", &result);
         //strftime(buf, sizeof(buf), "%Y-%m-%d %X", &result);
@@ -55,14 +110,21 @@ void menuFunc()
     }
     if (menu_select == 'x')
     {
+        //have to cancel all the alarms in the list 
         printf("exit\n");
         void exit(int status);
     }
     // printf("%c\n", menu_select);
 }
 
+
+
+
+
+
 int main()
 {
+    alarm alarm_object;
     menuFunc();
     return 0;
 }
