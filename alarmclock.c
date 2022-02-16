@@ -11,25 +11,25 @@
 char menu_select;
 unsigned int alarm_count;
 
-typedef struct alarm
+typedef struct alarm_t
 {
     time_t time;
     unsigned int pid;
-} alarm;
+} alarm_t;
 
-struct alarm alarmArray[20];
+struct alarm_t alarmArray[20];
 
 void alarm_ring()
 {
     printf("Ring ring bitch");
-    execlp("mpg123", "mpg123", "-q", "./alarm.mp3",0);
+    // execlp("mpg123", "mpg123", "-q", "./alarm.mp3", 0);
 }
 
 unsigned int fork_alarm(time_t timestamp)
 {
     unsigned int pid = fork();
 
-    if(pid!=0)
+    if (pid != 0)
     {
         return pid;
     }
@@ -40,9 +40,9 @@ unsigned int fork_alarm(time_t timestamp)
 
         int diff = (int)difftime(timestamp, now);
 
-        if (diff<0)
+        if (diff < 0)
         {
-            //error handling
+            // error handling
             exit(1);
         }
         else
@@ -50,7 +50,6 @@ unsigned int fork_alarm(time_t timestamp)
             sleep(diff);
             alarm_ring();
             exit(0);
-
         }
     }
 }
@@ -58,9 +57,9 @@ unsigned int fork_alarm(time_t timestamp)
 void menuFunc()
 {
     time_t now = time(NULL);
-    struct tm *time = localtime(&now); //to get a nice string of time
+    struct tm *time = localtime(&now); // to get a nice string of time
     char s[100];
-    strftime(s, 100,"%Y-%m-%d %X", time);
+    strftime(s, 100, "%Y-%m-%d %X", time);
     printf("Welcome to the alarm clock! It is currently %s", s);
     printf("Please enter 's' (schedule), 'l' (list), 'c' (cancel) or 'x' (exit) \n");
     scanf("%[^\n]%*c", &menu_select);
@@ -74,32 +73,28 @@ void menuFunc()
         scanf("%[^\n]%*c", alarmInput);
         struct tm result;
         strptime(alarmInput, "%Y-%m-%d %H:%M:%S", &result);
-        //do we need the date and time as string in buf?
+        // do we need the date and time as string in buf?
         strftime(buf, sizeof(buf), "%d %b %Y %H:%M", &result);
         puts(buf);
 
-        //convert from tm struct tom time_t variable 
+        // convert from tm struct to time_t variable
         time_t resultTime = mktime(&result);
-        
-        //call function that forks and creates a child process forthe alarm
+
+        // call function that forks and creates a child process forthe alarm
         unsigned int pid = fork_alarm(resultTime);
 
-        alarm new_alarm;
+        alarm_t new_alarm;
         new_alarm.time = resultTime;
         new_alarm.pid = pid;
 
-        //put newly constructed alarm in array 
+        // put newly constructed alarm in array
         unsigned int alarm_id = alarm_count;
         alarmArray[alarm_id] = new_alarm;
-        alarm_count += 1; 
+        alarm_count += 1;
 
-
-        //strptime(string, "%Y-%m-%d %X", &result);
-        //strftime(buf, sizeof(buf), "%Y-%m-%d %X", &result);
-        //printf("%s", buf);
-        
-        
-        
+        // strptime(string, "%Y-%m-%d %X", &result);
+        // strftime(buf, sizeof(buf), "%Y-%m-%d %X", &result);
+        // printf("%s", buf);
     }
     if (menu_select == 'l')
     {
@@ -110,21 +105,16 @@ void menuFunc()
     }
     if (menu_select == 'x')
     {
-        //have to cancel all the alarms in the list 
+        // have to cancel all the alarms in the list
         printf("exit\n");
         void exit(int status);
     }
     // printf("%c\n", menu_select);
 }
 
-
-
-
-
-
 int main()
 {
-    alarm alarm_object;
+    alarm_t alarm_object;
     menuFunc();
     return 0;
 }
