@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <time.h>
 #include <unistd.h>
+#include <signal.h>
+#include<sys/wait.h>
 #define LEN 256
 #define SIZE 20
 
@@ -24,7 +26,7 @@ void alarm_ring()
 {
     printf("\nRing ring bitch\n");
     // Sound wont work because of WSL
-    //  execlp("mpg123", "mpg123", "-q", "./alarm.mp3", NULL);
+    // execlp("mpg123", "mpg123", "-q", "./alarm.mp3", NULL);
 }
 
 unsigned int alarm_diff_time(time_t timestamp)
@@ -39,6 +41,7 @@ unsigned int fork_alarm(time_t timestamp)
     unsigned int pid = fork(); // should be a pid_t type
     int diff_time = alarm_diff_time(timestamp);
 
+    //https://linuxhint.com/fork_linux_system_call_c/
     if (pid != 0)
     {
         return pid;
@@ -93,7 +96,7 @@ void schedule_alarm(char alarmInput[LEN])
     alarm_t new_alarm;
     new_alarm.time = resultTime;
     new_alarm.pid = pid;
-
+    
     // put newly constructed alarm in array
     unsigned int alarm_id = alarm_count;
     alarmArray[alarm_id] = new_alarm;
@@ -128,12 +131,20 @@ void cancel_alarm(char alarmInput[LEN])
     }
     else
     {
-        // Deleting alarm
+
+        alarm_t cancelling_alarm = alarmArray[num];
+        printf("NUM:%d\n", num);
+        printf("test:%d\n", alarmArray[num].pid);
+        printf("PID:%d\n", cancelling_alarm.pid);
+        //kill(cancelling_alarm.pid, SIGKILL);
+        
+        
+        // Deleting alarm from array
         alarm_count--;
         printf("%d\n", alarm_count);
         for (int i = num - 1; i < SIZE - 1; i++)
         {
-            alarmArray[i] = alarmArray[i + 1];
+            alarmArray[i] = alarmArray[i + 1];     
         }
     }
 }
