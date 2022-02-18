@@ -74,11 +74,11 @@ void welcome_message()
 
 void schedule_alarm(char alarmInput[LEN])
 {
-    // REMEMBER TO ADD FUNC FOR FULL LIST
+    // REMEMBER TO ADD FUNC FOR FULL LIST (<20 elements)
 
     char buf[255];
     printf("Schedule alarm at which date and time? Format:YYYY-MM-DD hh:mm:ss ");
-    // legge til hvis bruker skriver inn feil input
+    // add error handling, wrong input
     scanf("%[^\n]%*c", alarmInput);
     struct tm result;
     result.tm_isdst = -1;
@@ -118,13 +118,6 @@ void list_alarms()
 
 void cancel_alarm(char alarmInput[LEN])
 {
-    /*
-    char buf[255];
-    printf("Cancel which alarm? ");
-    // legge til hvis bruker skriver inn feil input
-    scanf("%[^\n]%*c", alarmInput);
-    if(alarmInput)
-    */
     printf("Cancel which alarm? ");
     int num;
     char term;
@@ -135,13 +128,13 @@ void cancel_alarm(char alarmInput[LEN])
     }
     else
     {
+        // Deleting alarm
         alarm_count--;
         printf("%d\n", alarm_count);
         for (int i = num - 1; i < SIZE - 1; i++)
         {
             alarmArray[i] = alarmArray[i + 1];
         }
-        // Tar ikke hensyn til at en plass foran i lista kan bli ledig nå.
     }
 }
 
@@ -166,7 +159,7 @@ void menuFunc()
     if (menu_select == 'x')
     {
         // have to cancel all the alarms in the list
-        printf("exit\n");
+        printf("Goodbye!\n");
         exit(1);
     }
     // printf("%c\n", menu_select);
