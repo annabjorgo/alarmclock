@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <time.h>
 #include <unistd.h>
+#include <signal.h>
+#include<sys/wait.h>
 #define LEN 256
 #define SIZE 20
 
@@ -15,7 +17,7 @@ int number = 0;
 typedef struct alarm_t
 {
     time_t time;
-    unsigned int pid;
+    pid_t pid;
 } alarm_t;
 
 struct alarm_t alarmArray[SIZE];
@@ -24,7 +26,7 @@ void alarm_ring()
 {
     printf("\nRing ring bitch\n");
     // Sound wont work because of WSL
-    //  execlp("mpg123", "mpg123", "-q", "./alarm.mp3", NULL);
+    // execlp("mpg123", "mpg123", "-q", "./alarm.mp3", NULL);
 }
 
 unsigned int alarm_diff_time(time_t timestamp)
@@ -34,10 +36,9 @@ unsigned int alarm_diff_time(time_t timestamp)
     return diff;
 }
 
-unsigned int fork_alarm(time_t timestamp)
+unsigned int fork_alarm(time_t timestamp, int diff_time)
 {
-    unsigned int pid = fork(); // should be a pid_t type
-    int diff_time = alarm_diff_time(timestamp);
+    pid_t pid = fork(); 
 
     if (pid != 0)
     {
@@ -45,20 +46,11 @@ unsigned int fork_alarm(time_t timestamp)
     }
 
     else
-    {
+    {  
         printf("Scheduling alarm in %d seconds\n", diff_time);
-
-        if (diff_time < 0)
-        {
-            // error handling
-            exit(1);
-        }
-        else
-        {
-            sleep(diff_time);
-            alarm_ring();
-            exit(0);
-        }
+        sleep(diff_time);
+        alarm_ring();
+        exit(0);
     }
 }
 
@@ -78,35 +70,46 @@ void schedule_alarm(char alarmInput[LEN])
 
     char buf[255];
     printf("Schedule alarm at which date and time? Format:YYYY-MM-DD hh:mm:ss ");
-    // add error handling, wrong input
     scanf("%[^\n]%*c", alarmInput);
     struct tm result;
     result.tm_isdst = -1;
     strptime(alarmInput, "%Y-%m-%d %H:%M:%S", &result);
+    
 
     // convert from tm struct to time_t variable
     time_t resultTime = mktime(&result);
 
-    // call function that forks and creates a child process for the alarm
-    unsigned int pid = fork_alarm(resultTime);
+    int diff_time = alarm_diff_time(resultTime);
+    if (diff_time < 0)
+    {
+        printf("Couldn't schedule this alarm. Make sure to enter a time that hasn't passed\n"
+        "Hit 's' to schedule a new alarm\n");
+    }
+    else {
+        // call function that forks and creates a child process for the alarm
+        pid_t pid = fork_alarm(resultTime, diff_time);
 
-    alarm_t new_alarm;
-    new_alarm.time = resultTime;
-    new_alarm.pid = pid;
+        alarm_t new_alarm;
+        new_alarm.time = resultTime;
+        new_alarm.pid = pid;
 
-    // put newly constructed alarm in array
-    unsigned int alarm_id = alarm_count;
-    alarmArray[alarm_id] = new_alarm;
-    alarm_count += 1;
+        // put newly constructed alarm in array
+        unsigned int alarm_id = alarm_count;
+        alarmArray[alarm_id] = new_alarm;
+        alarm_count += 1;
+    }
+    
 }
 
 void list_alarms()
 {
+    bool no_alarms = true;
     printf("Scheduled alarms:\n");
     for (int i = 0; i < SIZE; i++)
     {
         if (alarmArray[i].pid != 0)
         {
+            no_alarms = false;
             time_t alarm_time = alarmArray[i].time;
             struct tm *time = localtime(&alarm_time);
             char s[100];
@@ -114,6 +117,15 @@ void list_alarms()
             printf("Alarm %d at %s\n", i + 1, s);
         }
     }
+    if (no_alarms) {
+        printf("Couldn't find any scheduled alarms:(\n");
+    }
+}
+
+void kill_alarm(int alarm_id)
+{
+    alarm_t cancelling_alarm = alarmArray[alarm_id];
+    kill(cancelling_alarm.pid,SIGKILL);
 }
 
 void cancel_alarm(char alarmInput[LEN])
@@ -121,22 +133,39 @@ void cancel_alarm(char alarmInput[LEN])
     printf("Cancel which alarm? ");
     int num;
     char term;
-    if (scanf("%d%c", &num, &term) != 2 || term != '\n')
+    if (scanf("%d%c", &num, &term) != 2 || term != '\n' || alarmArray[num-1].pid == 0)
     {
-        printf("Please enter a valid number\n");
-        // Remember to handle number not existing in list
+        printf("Please enter a valid number next time\n");
     }
+
     else
     {
-        // Deleting alarm
+        //killing the child process 
+        kill_alarm(num-1);
+
+        //deleting alarm from array
         alarm_count--;
-        printf("%d\n", alarm_count);
+        printf("Remaining alarms: %d\n", alarm_count);
         for (int i = num - 1; i < SIZE - 1; i++)
         {
-            alarmArray[i] = alarmArray[i + 1];
+            alarmArray[i] = alarmArray[i + 1];     
         }
     }
 }
+
+void terminate_program()
+{
+    printf("Goodbye!\n");
+    for (int i = 0; i < SIZE - 1; i++)
+    {
+        if (alarmArray[i].pid != 0) 
+        {
+            kill_alarm(i);
+        }
+    }
+    exit(EXIT_SUCCESS);
+}
+
 
 void menuFunc()
 {
@@ -158,11 +187,14 @@ void menuFunc()
     }
     if (menu_select == 'x')
     {
-        // have to cancel all the alarms in the list
-        printf("Goodbye!\n");
-        exit(1);
+        terminate_program();
     }
-    // printf("%c\n", menu_select);
+    //this is not working as it should
+    //if (menu_select != 'x' || menu_select != 's' || menu_select != 'l' ||menu_select != 'c') 
+    //{
+    //  printf("Input not supported. Please enter s,l,c or x\n");
+    //}
+    
 }
 
 int main()
