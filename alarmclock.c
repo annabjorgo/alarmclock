@@ -135,7 +135,7 @@ void cancel_alarm(char alarmInput[LEN])
     char term;
     if (scanf("%d%c", &num, &term) != 2 || term != '\n' || alarmArray[num-1].pid == 0)
     {
-        printf("Please enter a valid number next time\n");
+        printf("Unvalid number or the alarm does not exists\n");
     }
 
     else
