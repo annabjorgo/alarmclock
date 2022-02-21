@@ -9,10 +9,12 @@
 #include<sys/wait.h>
 #define LEN 256
 #define SIZE 20
+#define NUMBER_OF_ALARMTONES 10
+#define ALARM_TONE_LENGTH 100
 
 char menu_select;
 unsigned int alarm_count;
-int number = 0;
+int total_alarmtones = 1;
 
 typedef struct alarm_t
 {
@@ -20,11 +22,37 @@ typedef struct alarm_t
     pid_t pid;
 } alarm_t;
 
-struct alarm_t alarmArray[SIZE];
+struct alarm_t alarms[SIZE];
+char alarmtones_array[NUMBER_OF_ALARMTONES][ALARM_TONE_LENGTH];
+
+//for storing text-based alarm tones
+void read_alarmtones_file() {
+    FILE* file;
+    char buf[1000];
+    int i = 0;
+    int total = 0;
+
+    file = fopen("alarmtones.txt", "r");
+
+    while(fgets(alarmtones_array[i], ALARM_TONE_LENGTH, file))
+    {
+        alarmtones_array[i][strlen(alarmtones_array[i]) - 1] = '\0';
+        i++;
+
+    }
+    total_alarmtones = i;
+    int fclose( FILE *alarmtones);
+}
+
 
 void alarm_ring()
 {
-    printf("\nRing ring bitch\n");
+    //using rand() to generate a random text-based alarmtone
+    srand(time(NULL));
+    int random = rand() % total_alarmtones;
+
+    printf("%s\n", alarmtones_array[random]);
+
     // Sound wont work because of WSL
     // execlp("mpg123", "mpg123", "-q", "./alarm.mp3", NULL);
 }
@@ -50,7 +78,7 @@ unsigned int fork_alarm(time_t timestamp, int diff_time)
         printf("Scheduling alarm in %d seconds\n", diff_time);
         sleep(diff_time);
         alarm_ring();
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
 }
 
@@ -75,8 +103,6 @@ void schedule_alarm(char alarmInput[LEN])
     result.tm_isdst = -1;
     strptime(alarmInput, "%Y-%m-%d %H:%M:%S", &result);
     
-
-    // convert from tm struct to time_t variable
     time_t resultTime = mktime(&result);
 
     int diff_time = alarm_diff_time(resultTime);
@@ -95,7 +121,7 @@ void schedule_alarm(char alarmInput[LEN])
 
         // put newly constructed alarm in array
         unsigned int alarm_id = alarm_count;
-        alarmArray[alarm_id] = new_alarm;
+        alarms[alarm_id] = new_alarm;
         alarm_count += 1;
     }
     
@@ -107,10 +133,10 @@ void list_alarms()
     printf("Scheduled alarms:\n");
     for (int i = 0; i < SIZE; i++)
     {
-        if (alarmArray[i].pid != 0)
+        if (alarms[i].pid != 0)
         {
             no_alarms = false;
-            time_t alarm_time = alarmArray[i].time;
+            time_t alarm_time = alarms[i].time;
             struct tm *time = localtime(&alarm_time);
             char s[100];
             strftime(s, 100, "%Y-%m-%d %X", time);
@@ -124,7 +150,7 @@ void list_alarms()
 
 void kill_alarm(int alarm_id)
 {
-    alarm_t cancelling_alarm = alarmArray[alarm_id];
+    alarm_t cancelling_alarm = alarms[alarm_id];
     kill(cancelling_alarm.pid,SIGKILL);
 }
 
@@ -133,7 +159,7 @@ void cancel_alarm(char alarmInput[LEN])
     printf("Cancel which alarm? ");
     int num;
     char term;
-    if (scanf("%d%c", &num, &term) != 2 || term != '\n' || alarmArray[num-1].pid == 0)
+    if (scanf("%d%c", &num, &term) != 2 || term != '\n' || alarms[num-1].pid == 0)
     {
         printf("Unvalid number or the alarm does not exists\n");
     }
@@ -148,7 +174,7 @@ void cancel_alarm(char alarmInput[LEN])
         printf("Remaining alarms: %d\n", alarm_count);
         for (int i = num - 1; i < SIZE - 1; i++)
         {
-            alarmArray[i] = alarmArray[i + 1];     
+            alarms[i] = alarms[i + 1];     
         }
     }
 }
@@ -158,7 +184,7 @@ void terminate_program()
     printf("Goodbye!\n");
     for (int i = 0; i < SIZE - 1; i++)
     {
-        if (alarmArray[i].pid != 0) 
+        if (alarms[i].pid != 0) 
         {
             kill_alarm(i);
         }
@@ -199,9 +225,9 @@ void menuFunc()
 
 int main()
 {
-    alarm_t alarm_object;
+    read_alarmtones_file();
     welcome_message();
-    while (number == 0)
+    while (1)
     {
         menuFunc();
     }
