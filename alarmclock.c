@@ -25,7 +25,7 @@ typedef struct alarm_t
 struct alarm_t alarms[SIZE];
 char alarmtones_array[NUMBER_OF_ALARMTONES][ALARM_TONE_LENGTH];
 
-//for storing text-based alarm tones
+//for storing text-based alarm tones in array
 void read_alarmtones_file() {
     FILE* file;
     char buf[1000];
