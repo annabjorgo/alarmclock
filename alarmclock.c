@@ -200,7 +200,7 @@ void catch_zombies()
     pid_t pid = waitpid(-1, NULL, WNOHANG);
 
     // If no child has terminated
-    if (pid == (pid_t)0)
+    if (pid == 0)
     {
         return;
     }
@@ -208,7 +208,7 @@ void catch_zombies()
     unsigned int alarm_id = -1;
     for (int i = 0; i < alarm_count; i++)
     {
-        if ((pid_t)alarms[i].pid == pid)
+        if (alarms[i].pid == pid)
         {
             alarm_id = i;
             break;
@@ -224,8 +224,10 @@ void catch_zombies()
     update_list(alarm_id);
 }
 
-void menuFunc()
+int menuFunc()
 {
+    // prøvd CZ her
+
     scanf("%[^\n]%*c", &menu_select);
     char alarmInput[LEN] = {0};
 
@@ -234,6 +236,7 @@ void menuFunc()
 
     if (menu_select == 's')
     {
+        // Prøvd CZ her
         if (alarm_count < SIZE)
         {
             schedule_alarm(alarmInput);
@@ -242,26 +245,35 @@ void menuFunc()
         {
             printf("Too many scheduled alarms.\nDelete an alarm or wait for alarm to go off\n");
         }
+        return 1;
     }
 
     if (menu_select == 'l')
     {
         // Har prøvd å ha catch_zombies her
         list_alarms();
+        return 1;
     }
     if (menu_select == 'c')
     {
         cancel_alarm(alarmInput);
+        return 1;
     }
     if (menu_select == 'x')
     {
         terminate_program();
+        return 1;
     }
 
     if (menu_select != 'x' && menu_select != 's' && menu_select != 'l' && menu_select != 'c')
     {
+        // Prøvd CZ her
         printf("\nInput not supported. Please enter s,l,c or x\n");
+        return 1;
     }
+    return 1;
+
+    // Prøvd CZ her
 }
 
 int main()
@@ -269,10 +281,18 @@ int main()
     read_alarmtones_file();
     welcome_message();
     // Har prøvd catch_zombies her
+    /*
     while (1)
     {
         // Har prøvd catch_zombies her
         menuFunc();
+        catch_zombies();
     }
-    return 0;
+    */
+    while (menuFunc())
+    {
+        catch_zombies();
+    }
+
+    return EXIT_SUCCESS;
 }
