@@ -155,7 +155,7 @@ void remove_passed_alarms()
 {
     for (int i = 0; i < NUMBER_OF_ALARMS; i++)
     {
-        if (alarms[i].pid != 0 && alarms[i].time < time(NULL))
+        if (alarms[i].pid != 0 && alarms[i].time <= time(NULL))
         {
             update_list(i);
             continue;
@@ -258,10 +258,12 @@ void catch_zombies()
     update_list(alarm_id);
 }
 
-int menuFunc()
+void menu_func()
 {
     scanf("%[^\n]%*c", &menu_select);
     char alarmInput[LEN] = {0};
+
+    catch_zombies();
 
     if (menu_select == 's')
     {
@@ -273,29 +275,24 @@ int menuFunc()
         {
             printf("Too many scheduled alarms.\nDelete an alarm or wait for alarm to go off\n");
         }
-        return 1;
     }
 
     if (menu_select == 'l')
     {
         list_alarms();
-        return 1;
     }
     if (menu_select == 'c')
     {
         cancel_alarm(alarmInput);
-        return 1;
     }
     if (menu_select == 'x')
     {
         terminate_program();
-        return 1;
     }
 
     if (menu_select != 'x' && menu_select != 's' && menu_select != 'l' && menu_select != 'c')
     {
         printf("\nInput not supported. Please enter s,l,c or x\n");
-        return 1;
     }
 }
 
@@ -303,8 +300,9 @@ int main()
 {
     read_alarmtones_file();
     welcome_message();
-    while (menuFunc())
+    while (1)
     {
+        menu_func();
         catch_zombies();
     }
 
