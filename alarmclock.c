@@ -25,6 +25,27 @@ typedef struct alarm_t
 struct alarm_t alarms[SIZE];
 char alarmtones_array[NUMBER_OF_ALARMTONES][ALARM_TONE_LENGTH];
 
+void update_list(int num)
+{
+    alarm_count--;
+    for (int i = num - 1; i < SIZE - 1; i++)
+    {
+        alarms[i] = alarms[i + 1];
+    }
+}
+
+void remove_passed_alarms()
+{
+    for (int i = 0; i < SIZE; i++)
+    {
+        if (alarms[i].pid != 0 && alarms[i].time < time(NULL))
+        {
+            update_list(i);
+        }
+    }
+}
+
+
 // for storing text-based alarm tones in array
 void read_alarmtones_file()
 {
@@ -126,6 +147,7 @@ void schedule_alarm(char alarmInput[LEN])
 
 void list_alarms()
 {
+    remove_passed_alarms();
     bool no_alarms = true;
     printf("Scheduled alarms:\n");
     for (int i = 0; i < SIZE; i++)
@@ -152,14 +174,7 @@ void kill_alarm(int alarm_id)
     kill(cancelling_alarm.pid, SIGKILL);
 }
 
-void update_list(int num)
-{
-    alarm_count--;
-    for (int i = num - 1; i < SIZE - 1; i++)
-    {
-        alarms[i] = alarms[i + 1];
-    }
-}
+
 
 void cancel_alarm(char alarmInput[LEN])
 {
