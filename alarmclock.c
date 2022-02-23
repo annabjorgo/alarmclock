@@ -137,7 +137,7 @@ void schedule_alarm(char alarmInput[LEN])
 
 
 /*
-removes alarm no. num from the alarms array
+removes an alarm from the alarms array
 */
 void update_list(int alarm_id)
 {
@@ -149,7 +149,7 @@ void update_list(int alarm_id)
 }
 
 /*
-removes the alarms that has already passed from the array
+removes the alarms from the array that has rung
 */
 void remove_passed_alarms()
 {
@@ -234,7 +234,7 @@ void catch_zombies()
     // -1 means wait for any child process
     pid_t pid = waitpid(-1, NULL, WNOHANG);
 
-    // None of the child processes has completed
+    // If none of the child processes has completed
     if (pid == 0)
     {
         return;
@@ -258,11 +258,10 @@ void catch_zombies()
     update_list(alarm_id);
 }
 
-int menuFunc()
+void menuFunc()
 {
     scanf("%[^\n]%*c", &menu_select);
     char alarmInput[LEN] = {0};
-    catch_zombies();
 
     if (menu_select == 's')
     {
@@ -274,39 +273,34 @@ int menuFunc()
         {
             printf("Too many scheduled alarms.\nDelete an alarm or wait for alarm to go off\n");
         }
-        return 1;
     }
 
     if (menu_select == 'l')
     {
         list_alarms();
-        return 1;
     }
     if (menu_select == 'c')
     {
         cancel_alarm(alarmInput);
-        return 1;
     }
     if (menu_select == 'x')
     {
         terminate_program();
-        return 1;
     }
 
     if (menu_select != 'x' && menu_select != 's' && menu_select != 'l' && menu_select != 'c')
     {
         printf("\nInput not supported. Please enter s,l,c or x\n");
-        return 1;
     }
-    return 1;
 }
 
 int main()
 {
     read_alarmtones_file();
     welcome_message();
-    while (menuFunc())
+    while (1)
     {
+        menuFunc();
         catch_zombies();
     }
 
