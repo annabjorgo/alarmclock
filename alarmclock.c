@@ -25,32 +25,23 @@ typedef struct alarm_t
 struct alarm_t alarms[NUMBER_OF_ALARMS];
 char alarmtones_array[NUMBER_OF_ALARMTONES][ALARM_TONE_LENGTH];
 
-void update_list(int num)
+void welcome_message()
 {
-    alarm_count--;
-    for (int i = num - 1; i < NUMBER_OF_ALARMS - 1; i++)
-    {
-        alarms[i] = alarms[i + 1];
-    }
+    time_t now = time(NULL);
+    struct tm *time = localtime(&now);
+    char s[100];
+    strftime(s, 100, "%Y-%m-%d %X", time);
+    printf("Welcome to the alarm clock! It is currently %s\n", s);
+    printf("Please enter 's' (schedule), 'l' (list), 'c' (cancel) or 'x' (exit) \n");
 }
 
-void remove_passed_alarms()
-{
-    for (int i = 0; i < NUMBER_OF_ALARMS; i++)
-    {
-        if (alarms[i].pid != 0 && alarms[i].time < time(NULL))
-        {
-            update_list(i);
-        }
-    }
-}
-
-
-// for storing text-based alarm tones in array
+/*
+reading text-based alarm tones from 'alarmtones.txt' and store them in an array
+using text instead of audio because of problems with WSL
+*/
 void read_alarmtones_file()
 {
     FILE *file;
-    char buf[1000];
     int i = 0;
     int total = 0;
 
@@ -65,9 +56,12 @@ void read_alarmtones_file()
     int fclose(FILE * alarmtones);
 }
 
+/*
+assigns a random alarm tone for an alarm
+*/
 void alarm_ring()
 {
-    // using rand() to generate a random text-based alarmtone
+    // using rand() to choose a random alarmtone
     srand(time(NULL));
     int random = rand() % total_alarmtones;
 
@@ -77,6 +71,10 @@ void alarm_ring()
     // execlp("mpg123", "mpg123", "-q", "./alarm.mp3", NULL);
 }
 
+
+/*
+computes the number of seconds between now and input time
+*/
 unsigned int alarm_diff_time(time_t timestamp)
 {
     time_t now = time(NULL);
@@ -84,6 +82,9 @@ unsigned int alarm_diff_time(time_t timestamp)
     return diff;
 }
 
+/*
+creating a new process
+*/
 unsigned int fork_alarm(time_t timestamp, int diff_time)
 {
     pid_t pid = fork();
@@ -102,19 +103,8 @@ unsigned int fork_alarm(time_t timestamp, int diff_time)
     }
 }
 
-void welcome_message()
-{
-    time_t now = time(NULL);
-    struct tm *time = localtime(&now);
-    char s[100];
-    strftime(s, 100, "%Y-%m-%d %X", time);
-    printf("Welcome to the alarm clock! It is currently %s\n", s);
-    printf("Please enter 's' (schedule), 'l' (list), 'c' (cancel) or 'x' (exit) \n");
-}
-
 void schedule_alarm(char alarmInput[LEN])
 {
-    char buf[255];
     printf("Schedule alarm at which date and time? Format:YYYY-MM-DD hh:mm:ss ");
     scanf("%[^\n]%*c", alarmInput);
     struct tm result;
@@ -145,6 +135,35 @@ void schedule_alarm(char alarmInput[LEN])
     }
 }
 
+
+/*
+removes alarm no. num from the alarms array
+*/
+void update_list(int num)
+{
+    alarm_count--;
+    for (int i = num - 1; i < NUMBER_OF_ALARMS - 1; i++)
+    {
+        alarms[i] = alarms[i + 1];
+    }
+}
+
+/*
+removes the alarms that has already passed from the array
+*/
+void remove_passed_alarms()
+{
+    for (int i = 0; i < NUMBER_OF_ALARMS; i++)
+    {
+        if (alarms[i].pid != 0 && alarms[i].time < time(NULL))
+        {
+            update_list(i);
+            continue;
+        }
+    }
+}
+
+
 void list_alarms()
 {
     remove_passed_alarms();
@@ -173,7 +192,6 @@ void kill_alarm(int alarm_id)
     alarm_t cancelling_alarm = alarms[alarm_id];
     kill(cancelling_alarm.pid, SIGKILL);
 }
-
 
 
 void cancel_alarm(char alarmInput[LEN])
@@ -212,18 +230,19 @@ void terminate_program()
 
 void catch_zombies()
 {
+    // -1 means wait for any child process
     pid_t pid = waitpid(-1, NULL, WNOHANG);
 
-    // If no child has terminated
+    // None of the child processes has completed
     if (pid == 0)
     {
         return;
     }
 
     unsigned int alarm_id = -1;
-    for (int i = 0; i < alarm_count; i++)
+    for (int i = 0; i < NUMBER_OF_ALARMS; i++)
     {
-        if (alarms[i].pid == pid)
+        if (alarms[i].pid == pid && alarms[i].pid != 0)
         {
             alarm_id = i;
             break;
@@ -235,23 +254,17 @@ void catch_zombies()
         return;
     }
 
-    // Making sure to update list
     update_list(alarm_id);
 }
 
 int menuFunc()
 {
-    // prøvd CZ her
-
     scanf("%[^\n]%*c", &menu_select);
     char alarmInput[LEN] = {0};
-
-    // Bug her -> lista oppdateres ikke dersom to alarmer ringer på rad uten input mellom
     catch_zombies();
 
     if (menu_select == 's')
     {
-        // Prøvd CZ her
         if (alarm_count < NUMBER_OF_ALARMS)
         {
             schedule_alarm(alarmInput);
@@ -265,7 +278,6 @@ int menuFunc()
 
     if (menu_select == 'l')
     {
-        // Har prøvd å ha catch_zombies her
         list_alarms();
         return 1;
     }
@@ -282,28 +294,16 @@ int menuFunc()
 
     if (menu_select != 'x' && menu_select != 's' && menu_select != 'l' && menu_select != 'c')
     {
-        // Prøvd CZ her
         printf("\nInput not supported. Please enter s,l,c or x\n");
         return 1;
     }
     return 1;
-
-    // Prøvd CZ her
 }
 
 int main()
 {
     read_alarmtones_file();
     welcome_message();
-    // Har prøvd catch_zombies her
-    /*
-    while (1)
-    {
-        // Har prøvd catch_zombies her
-        menuFunc();
-        catch_zombies();
-    }
-    */
     while (menuFunc())
     {
         catch_zombies();
