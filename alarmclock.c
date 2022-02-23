@@ -8,7 +8,7 @@
 #include <signal.h>
 #include <sys/wait.h>
 #define LEN 256
-#define SIZE 20
+#define NUMBER_OF_ALARMS 20
 #define NUMBER_OF_ALARMTONES 10
 #define ALARM_TONE_LENGTH 100
 
@@ -22,13 +22,13 @@ typedef struct alarm_t
     pid_t pid;
 } alarm_t;
 
-struct alarm_t alarms[SIZE];
+struct alarm_t alarms[NUMBER_OF_ALARMS];
 char alarmtones_array[NUMBER_OF_ALARMTONES][ALARM_TONE_LENGTH];
 
 void update_list(int num)
 {
     alarm_count--;
-    for (int i = num - 1; i < SIZE - 1; i++)
+    for (int i = num - 1; i < NUMBER_OF_ALARMS - 1; i++)
     {
         alarms[i] = alarms[i + 1];
     }
@@ -36,7 +36,7 @@ void update_list(int num)
 
 void remove_passed_alarms()
 {
-    for (int i = 0; i < SIZE; i++)
+    for (int i = 0; i < NUMBER_OF_ALARMS; i++)
     {
         if (alarms[i].pid != 0 && alarms[i].time < time(NULL))
         {
@@ -150,7 +150,7 @@ void list_alarms()
     remove_passed_alarms();
     bool no_alarms = true;
     printf("Scheduled alarms:\n");
-    for (int i = 0; i < SIZE; i++)
+    for (int i = 0; i < NUMBER_OF_ALARMS; i++)
     {
         if (alarms[i].pid != 0)
         {
@@ -200,7 +200,7 @@ void cancel_alarm(char alarmInput[LEN])
 void terminate_program()
 {
     printf("Goodbye!\n");
-    for (int i = 0; i < SIZE - 1; i++)
+    for (int i = 0; i < NUMBER_OF_ALARMS - 1; i++)
     {
         if (alarms[i].pid != 0)
         {
@@ -252,7 +252,7 @@ int menuFunc()
     if (menu_select == 's')
     {
         // Prøvd CZ her
-        if (alarm_count < SIZE)
+        if (alarm_count < NUMBER_OF_ALARMS)
         {
             schedule_alarm(alarmInput);
         }
