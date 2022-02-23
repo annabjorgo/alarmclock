@@ -43,7 +43,6 @@ void read_alarmtones_file()
 {
     FILE *file;
     int i = 0;
-    int total = 0;
 
     file = fopen("alarmtones.txt", "r");
 
@@ -139,10 +138,10 @@ void schedule_alarm(char alarmInput[LEN])
 /*
 removes alarm no. num from the alarms array
 */
-void update_list(int num)
+void update_list(int alarm_id)
 {
     alarm_count--;
-    for (int i = num - 1; i < NUMBER_OF_ALARMS - 1; i++)
+    for (int i = alarm_id - 1; i < NUMBER_OF_ALARMS - 1; i++)
     {
         alarms[i] = alarms[i + 1];
     }
@@ -197,6 +196,7 @@ void kill_alarm(int alarm_id)
 void cancel_alarm(char alarmInput[LEN])
 {
     printf("Cancel which alarm? ");
+    //num is the alarm number. Starts counting from 1
     int num;
     char term;
     if (scanf("%d%c", &num, &term) != 2 || term != '\n' || alarms[num - 1].pid == 0)
@@ -210,7 +210,7 @@ void cancel_alarm(char alarmInput[LEN])
         kill_alarm(num - 1);
 
         // deleting alarm from array
-        update_list(num);
+        update_list(num-1);
         printf("Remaining alarms: %d\n", alarm_count);
     }
 }
