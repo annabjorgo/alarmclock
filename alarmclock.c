@@ -58,7 +58,7 @@ void read_alarmtones_file()
 /*
 assigns a random alarm tone for an alarm
 */
-void alarm_ring()
+void random_alarmtone()
 {
     // using rand() to choose a random alarmtone
     srand(time(NULL));
@@ -66,7 +66,7 @@ void alarm_ring()
 
     printf("%s\n", alarmtones_array[random]);
 
-    // Sound wont work because of WSL
+    // Audio wont work because of WSL
     // execlp("mpg123", "mpg123", "-q", "./alarm.mp3", NULL);
 }
 
@@ -97,10 +97,11 @@ unsigned int fork_alarm(time_t timestamp, int diff_time)
     {
         printf("Scheduling alarm in %d seconds\n", diff_time);
         sleep(diff_time);
-        alarm_ring();
+        random_alarmtone();
         exit(EXIT_SUCCESS);
     }
 }
+
 
 void schedule_alarm(char alarmInput[LEN])
 {
